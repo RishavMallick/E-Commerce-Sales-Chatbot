@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore - AI Sales Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            height: 80vh;
+        }
+
+        .product-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+        }
+
+        .chat-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .store-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .store-header h1 {
+            color: #4a5568;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .product-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            color: #667eea;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .product-specs {
+            font-size: 0.9em;
+            color: #718096;
+            line-height: 1.4;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+        }
+
+        .chat-header h2 {
+            font-size: 1.3em;
+            margin-bottom: 5px;
+        }
+
+        .chat-status {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 0.95em;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: #f7fafc;
+            color: #2d3748;
+            border: 1px solid #e2e8f0;
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 0.95em;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: transform 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            padding: 12px 18px;
+            background: #f7fafc;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #a0aec0;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-section {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .chat-section {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-section">
+        <button class="login-btn" onclick="toggleAuth()">Login / Register</button>
+        <span id="authStatus">Not logged in</span>
+    </div>
+
+    <div class="container">
+        <div class="product-section">
+            <div class="store-header">
+                <h1>TechStore</h1>
+                <p>Premium Electronics & Gadgets</p>
+            </div>
+            
+            <div class="product-grid" id="productGrid">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+
+        <div class="chat-section">
+            <div class="chat-header">
+                <h2>AI Sales Assistant</h2>
+                <div class="chat-status">Online • Ready to help</div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    👋 Hello! I'm your AI shopping assistant. I can help you find the perfect product, compare specifications, check availability, and guide you through your purchase. What are you looking for today?
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <div class="input-container">
+                    <input type="text" id="messageInput" placeholder="Ask about products, prices, or availability..." onkeypress="handleKeyPress(event)">
+                    <button class="send-btn" onclick="sendMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock E-commerce Database
+        const products = [
+            {
+                id: 1,
+                name: "MacBook Pro 16\"",
+                price: 2499,
+                category: "laptops",
+                specs: "M3 Max chip, 32GB RAM, 1TB SSD",
+                stock: 15,
+                emoji: "💻"
+            },
+            {
+                id: 2,
+                name: "iPhone 15 Pro",
+                price: 999,
+                category: "phones",
+                specs: "A17 Pro chip, 256GB, Pro camera system",
+                stock: 32,
+                emoji: "📱"
+            },
+            {
+                id: 3,
+                name: "Samsung Galaxy S24 Ultra",
+                price: 1199,
+                category: "phones",
+                specs: "Snapdragon 8 Gen 3, 512GB, S Pen",
+                stock: 18,
+                emoji: "📱"
+            },
+            {
+                id: 4,
+                name: "iPad Pro 11\"",
+                price: 799,
+                category: "tablets",
+                specs: "M4 chip, 256GB, 11-inch display",
+                stock: 24,
+                emoji: "📋"
+            },
+            {
+                id: 5,
+                name: "Sony WH-1000XM5",
+                price: 349,
+                category: "headphones",
+                specs: "Noise canceling, 30h battery, wireless",
+                stock: 45,
+                emoji: "🎧"
+            },
+            {
+                id: 6,
+                name: "Dell XPS 13",
+                price: 1299,
+                category: "laptops",
+                specs: "Intel i7, 16GB RAM, 512GB SSD",
+                stock: 12,
+                emoji: "💻"
+            }
+        ];
+
+        // User session management
+        let currentUser = null;
+        let chatHistory = [];
+        let sessionId = Date.now().toString();
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+            loadChatHistory();
+        });
+
+        // Load products into the grid
+        function loadProducts() {
+            const productGrid = document.getElementById('productGrid');
+            productGrid.innerHTML = '';
+            
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.onclick = () => selectProduct(product);
+                
+                productCard.innerHTML = `
+                    <div class="product-image">${product.emoji}</div>
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-price">$${product.price}</div>
+                    <div class="product-specs">${product.specs}</div>
+                    <div class="product-specs">Stock: ${product.stock} units</div>
+                `;
+                
+                productGrid.appendChild(productCard);
+            });
+        }
+
+        // Handle product selection
+        function selectProduct(product) {
+            const message = `Tell me more about the ${product.name}`;
+            sendUserMessage(message);
+            processProductInquiry(product);
+        }
+
+        // Authentication system
+        function toggleAuth() {
+            if (currentUser) {
+                currentUser = null;
+                document.getElementById('authStatus').textContent = 'Not logged in';
+                addBotMessage("You've been logged out. Some features may be limited.");
+            } else {
+                // Simulate login
+                currentUser = {
+                    id: 'user123',
+                    name: 'Rishav Mallick',
+                    email: 'rishavmallick.bwn@example.com'
+                };
+                document.getElementById('authStatus').textContent = `Logged in as ${currentUser.name}`;
+                addBotMessage(`Welcome back, ${currentUser.name}! I can now provide personalized recommendations and save your preferences.`);
+            }
+        }
+
+        // Chat functionality
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                sendUserMessage(message);
+                input.value = '';
+                processUserMessage(message);
+            }
+        }
+
+        function sendUserMessage(message) {
+            addMessage(message, 'user');
+            chatHistory.push({
+                type: 'user',
+                message: message,
+                timestamp: new Date().toISOString()
+            });
+            saveChatHistory();
+        }
+
+        function addMessage(message, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addBotMessage(message) {
+            showTypingIndicator();
+            setTimeout(() => {
+                hideTypingIndicator();
+                addMessage(message, 'bot');
+                chatHistory.push({
+                    type: 'bot',
+                    message: message,
+                    timestamp: new Date().toISOString()
+                });
+                saveChatHistory();
+            }, 1000 + Math.random() * 1000);
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.style.display = 'block';
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.style.display = 'none';
+        }
+
+        // AI Chat Processing (Simulated Backend Logic)
+        function processUserMessage(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // Intent recognition
+            if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('$')) {
+                handlePriceInquiry(message);
+            } else if (lowerMessage.includes('stock') || lowerMessage.includes('available') || lowerMessage.includes('inventory')) {
+                handleStockInquiry(message);
+            } else if (lowerMessage.includes('compare') || lowerMessage.includes('difference') || lowerMessage.includes('vs')) {
+                handleComparisonInquiry(message);
+            } else if (lowerMessage.includes('recommend') || lowerMessage.includes('suggest') || lowerMessage.includes('best')) {
+                handleRecommendationRequest(message);
+            } else if (lowerMessage.includes('buy') || lowerMessage.includes('purchase') || lowerMessage.includes('order')) {
+                handlePurchaseIntent(message);
+            } else if (lowerMessage.includes('spec') || lowerMessage.includes('feature') || lowerMessage.includes('detail')) {
+                handleSpecificationInquiry(message);
+            } else {
+                handleGeneralInquiry(message);
+            }
+        }
+
+        function handlePriceInquiry(message) {
+            const foundProduct = findProductInMessage(message);
+            if (foundProduct) {
+                addBotMessage(`The ${foundProduct.name} is priced at $${foundProduct.price}. ${currentUser ? 'As a registered customer, you may be eligible for special discounts!' : 'Sign up for member pricing and exclusive deals!'}`);
+            } else {
+                addBotMessage("I'd be happy to help with pricing! Could you specify which product you're interested in? You can also click on any product above to get detailed pricing information.");
+            }
+        }
+
+        function handleStockInquiry(message) {
+            const foundProduct = findProductInMessage(message);
+            if (foundProduct) {
+                const stockStatus = foundProduct.stock > 10 ? 'In Stock' : foundProduct.stock > 0 ? 'Limited Stock' : 'Out of Stock';
+                addBotMessage(`The ${foundProduct.name} is currently ${stockStatus} with ${foundProduct.stock} units available. ${foundProduct.stock < 5 && foundProduct.stock > 0 ? 'Order soon as stock is running low!' : ''}`);
+            } else {
+                addBotMessage("I can check stock levels for any product. Which item would you like me to check inventory for?");
+            }
+        }
+
+        function handleComparisonInquiry(message) {
+            const laptops = products.filter(p => p.category === 'laptops');
+            const phones = products.filter(p => p.category === 'phones');
+            
+            if (message.toLowerCase().includes('laptop')) {
+                addBotMessage(`Here's a comparison of our laptops:\n\n📱 ${laptops[0].name}: $${laptops[0].price} - ${laptops[0].specs}\n💻 ${laptops[1].name}: $${laptops[1].price} - ${laptops[1].specs}\n\nThe MacBook Pro offers superior performance for creative work, while the Dell XPS 13 provides excellent value for business use. What's your primary use case?`);
+            } else if (message.toLowerCase().includes('phone')) {
+                addBotMessage(`Phone comparison:\n\n📱 ${phones[0].name}: $${phones[0].price} - ${phones[0].specs}\n📱 ${phones[1].name}: $${phones[1].price} - ${phones[1].specs}\n\nThe iPhone offers iOS ecosystem integration, while the Galaxy provides more customization options. Which ecosystem do you prefer?`);
+            } else {
+                addBotMessage("I can help compare products! Try asking me to compare laptops, phones, or any specific products you're considering.");
+            }
+        }
+
+        function handleRecommendationRequest(message) {
+            if (!currentUser) {
+                addBotMessage("For personalized recommendations, I'd suggest logging in. However, I can still help! What type of device are you looking for and what's your budget range?");
+                return;
+            }
+            
+            const budget = extractBudget(message);
+            const category = extractCategory(message);
+            
+            let recommendations = products;
+            if (budget) {
+                recommendations = recommendations.filter(p => p.price <= budget);
+            }
+            if (category) {
+                recommendations = recommendations.filter(p => p.category === category);
+            }
+            
+            if (recommendations.length > 0) {
+                const topRec = recommendations[0];
+                addBotMessage(`Based on your preferences, I recommend the ${topRec.name} at $${topRec.price}. It offers ${topRec.specs} and is currently in stock. Would you like more details or shall I help you with the purchase process?`);
+            } else {
+                addBotMessage("I couldn't find products matching your exact criteria. Let me show you our best sellers instead!");
+            }
+        }
+
+        function handlePurchaseIntent(message) {
+            const foundProduct = findProductInMessage(message);
+            if (foundProduct) {
+                if (!currentUser) {
+                    addBotMessage(`To purchase the ${foundProduct.name}, please log in first. After logging in, I can guide you through our secure checkout process and provide shipping options.`);
+                } else {
+                    addBotMessage(`Great choice! The ${foundProduct.name} is $${foundProduct.price}. I can help you complete the purchase. Would you like to:\n\n1. Add to cart and continue shopping\n2. Buy now with express checkout\n3. Get more information first\n\nWhat would you prefer?`);
+                }
+            } else {
+                addBotMessage("I'd be happy to help with your purchase! Which product would you like to buy? You can click on any product above or tell me the specific item you're interested in.");
+            }
+        }
+
+        function handleSpecificationInquiry(message) {
+            const foundProduct = findProductInMessage(message);
+            if (foundProduct) {
+                processProductInquiry(foundProduct);
+            } else {
+                addBotMessage("I can provide detailed specifications for any of our products. Which item would you like to know more about?");
+            }
+        }
+
+        function handleGeneralInquiry(message) {
+            const responses = [
+                "I'm here to help you find the perfect tech product! Feel free to ask about our products, prices, or availability.",
+                "How can I assist you today? I can help with product recommendations, comparisons, or answer any questions about our inventory.",
+                "I'm your personal shopping assistant! Ask me anything about our products or let me help you find what you're looking for."
+            ];
+            
+            addBotMessage(responses[Math.floor(Math.random() * responses.length)]);
+        }
+
+        function processProductInquiry(product) {
+            const detailedInfo = `${product.emoji} **${product.name}**\n\n💰 Price: $${product.price}\n🔧 Specs: ${product.specs}\n📦 Stock: ${product.stock} units available\n\nThis is one of our ${product.stock > 20 ? 'popular' : 'premium'} items. ${currentUser ? 'Would you like me to add it to your cart or' : ''} Would you like to know more about shipping options or see similar products?`;
+            
+            addBotMessage(detailedInfo);
+        }
+
+        // Utility functions
+        function findProductInMessage(message) {
+            const lowerMessage = message.toLowerCase();
+            return products.find(product => 
+                lowerMessage.includes(product.name.toLowerCase()) ||
+                lowerMessage.includes(product.category) ||
+                (product.name.includes('MacBook') && lowerMessage.includes('macbook')) ||
+                (product.name.includes('iPhone') && lowerMessage.includes('iphone')) ||
+                (product.name.includes('Samsung') && lowerMessage.includes('samsung')) ||
+                (product.name.includes('Dell') && lowerMessage.includes('dell')) ||
+                (product.name.includes('Sony') && lowerMessage.includes('sony'))
+            );
+        }
+
+        function extractBudget(message) {
+            const budgetMatch = message.match(/\$?(\d+)/);
+            return budgetMatch ? parseInt(budgetMatch[1]) : null;
+        }
+
+        function extractCategory(message) {
+            const lowerMessage = message.toLowerCase();
+            if (lowerMessage.includes('laptop')) return 'laptops';
+            if (lowerMessage.includes('phone')) return 'phones';
+            if (lowerMessage.includes('tablet')) return 'tablets';
+            if (lowerMessage.includes('headphone')) return 'headphones';
+            return null;
+        }
+
+        // Session management
+        function saveChatHistory() {
+            // In a real application, this would send to backend
+            console.log('Saving chat history:', chatHistory);
+        }
+
+        function loadChatHistory() {
+            // In a real application, this would load from backend
+            console.log('Loading chat history for session:', sessionId);
+        }
+
+        // RESTful API Simulation (would be actual backend endpoints)
+        const API = {
+            async searchProducts(query) {
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                return products.filter(p => 
+                    p.name.toLowerCase().includes(query.toLowerCase()) ||
+                    p.category.toLowerCase().includes(query.toLowerCase())
+                );
+            },
+            
+            async getProduct(id) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                return products.find(p => p.id === id);
+            },
+            
+            async updateInventory(productId, quantity) {
+                await new Promise(resolve => setTimeout(resolve, 400));
+                const product = products.find(p => p.id === productId);
+                if (product) {
+                    product.stock -= quantity;
+                    return { success: true, newStock: product.stock };
+                }
+                return { success: false, error: 'Product not found' };
+            }
+        };
+    </script>
+</body>
+</html>
